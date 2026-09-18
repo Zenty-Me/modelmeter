@@ -1,5 +1,6 @@
 import type { CostComparison } from "@/lib/types";
 import { formatCurrency, formatMonthlyCost, formatPercentage } from "@/lib/format";
+import { ShareEstimate } from "./ShareEstimate";
 
 /**
  * Compact answer-first summary: the reader should reach a conclusion before
@@ -26,9 +27,12 @@ export function ComparisonSummary({
 
   return (
     <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h3 className="text-sm font-semibold text-slate-900">
-        Estimated Monthly Spend
-      </h3>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-900">
+          Estimated Monthly Spend
+        </h3>
+        <ShareEstimate />
+      </div>
 
       <dl className="mt-4 grid gap-3 sm:grid-cols-3">
         {stats.map((stat) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { Info } from "lucide-react";
 import type { UsageDraft } from "@/lib/types";
 import { DEFAULT_USAGE } from "@/lib/presets";
@@ -12,6 +12,8 @@ import {
   parseUsageDraft,
   toUsageDraft,
 } from "@/lib/calculator";
+import { parseCalculatorSearch } from "@/lib/url-state";
+import { CalculatorUrlLoader, CalculatorUrlWriter } from "./CalculatorUrlState";
 import { UsageCalculator } from "./UsageCalculator";
 import { UsageSummary } from "./UsageSummary";
 import { ModelComparison } from "./ModelComparison";
@@ -27,8 +29,17 @@ export function CostEstimator() {
     [usage],
   );
 
+  const loadUsageFromSearch = useCallback((search: string) => {
+    setDraft(toUsageDraft(parseCalculatorSearch(search)));
+  }, []);
+
   return (
     <section id="calculator" className="scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
+      <Suspense fallback={null}>
+        <CalculatorUrlLoader onSearch={loadUsageFromSearch} />
+      </Suspense>
+      <CalculatorUrlWriter usage={usage} />
+
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <Info

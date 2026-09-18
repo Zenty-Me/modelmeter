@@ -42,6 +42,7 @@ ModelMeter is a lightweight developer tool for estimating and comparing AI API c
 - Usage summary with formatted token counts (e.g. `100,000`, `200M`)
 - Data-driven pricing tiers: provider context thresholds resolve automatically as you type
 - Comparison summary showing the lowest estimate, the highest estimate and the potential difference
+- Share cost estimates through URL parameters — for example [`/?requests=10000&input=300000&output=1000`](https://modelmeter.vercel.app/?requests=10000&input=300000&output=1000) opens the long-context comparison directly, and a Share button copies the current link
 - Model cards with the applied pricing tier, verified input / output prices, estimated input and output cost, pricing mode, source link and verification date
 - Long-context badge on cards where a higher context tier is in effect
 - Expandable cost breakdown showing the formula behind each number
@@ -225,6 +226,4 @@ Import the repository on Vercel and keep the default settings — no environment
 - Prompt caching support
 - Batch API pricing
 - More AI providers and tier rules
-- Shareable cost estimates
-- URL query state
 - Pricing change history

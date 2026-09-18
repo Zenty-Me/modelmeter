@@ -81,14 +81,45 @@ export const SCENARIO_PRESETS: UsagePreset[] = [
   },
 ];
 
-export function matchPresetId(usage: UsageInput): string | null {
-  const presets = [...SIZE_PRESETS, ...SCENARIO_PRESETS];
+/** Every preset, in the order the UI presents them. */
+const ALL_PRESETS: readonly UsagePreset[] = [
+  ...SIZE_PRESETS,
+  ...SCENARIO_PRESETS,
+];
 
-  const match = presets.find((preset) =>
-    (Object.keys(preset.usage) as (keyof UsageInput)[]).every(
-      (key) => preset.usage[key] === usage[key],
-    ),
+function usageMatchesPreset(preset: UsagePreset, usage: UsageInput): boolean {
+  return (Object.keys(preset.usage) as (keyof UsageInput)[]).every(
+    (key) => preset.usage[key] === usage[key],
   );
+}
 
-  return match?.id ?? null;
+function matchPreset(
+  presets: readonly UsagePreset[],
+  usage: UsageInput,
+): string | null {
+  return presets.find((preset) => usageMatchesPreset(preset, usage))?.id ?? null;
+}
+
+/** The preset a usage set matches, across both groups. */
+export function matchPresetId(usage: UsageInput): string | null {
+  return matchPreset(ALL_PRESETS, usage);
+}
+
+/**
+ * The scenario preset a usage set matches, or null.
+ *
+ * Deliberately only the scenario group: a scenario preset is written to the URL
+ * as `scenario=<id>` because the id is shorter than the three numbers it
+ * expands to, while the scale presets write their numbers out in full so the
+ * parameter name keeps meaning what it says.
+ */
+export function matchScenarioPresetId(usage: UsageInput): string | null {
+  return matchPreset(SCENARIO_PRESETS, usage);
+}
+
+/** Looks up any preset by id, so a shared `scenario=<id>` can be read back. */
+export function findPresetById(id: string | null): UsagePreset | null {
+  if (!id) return null;
+
+  return ALL_PRESETS.find((preset) => preset.id === id) ?? null;
 }
