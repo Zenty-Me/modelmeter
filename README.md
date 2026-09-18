@@ -79,7 +79,18 @@ Other scripts:
 npm run build   # production build
 npm run start   # serve the production build
 npm run lint    # ESLint
+npm test        # unit tests (Vitest)
 ```
+
+## Testing
+
+```bash
+npm test
+```
+
+Unit tests cover the pure business logic in `lib/` — pricing tier boundaries, cost calculations, savings calculations and invalid-input edge cases. They run against the real pricing dataset and the real formulas, so a change to a published price or a tier bound is caught here.
+
+There is no browser automation, no component rendering and no visual testing. Styling is verified by eye.
 
 ## Project Structure
 
@@ -109,7 +120,8 @@ modelmeter/
 │   ├── presets.ts         # Usage presets
 │   ├── calculator.ts      # Pure calculation and comparison functions
 │   ├── format.ts          # Number, token, currency and date formatting
-│   └── site.ts            # Site-level constants
+│   ├── site.ts            # Site-level constants
+│   └── __tests__/         # Vitest unit tests for the pure functions above
 └── public/
 ```
 
