@@ -1,5 +1,9 @@
 import type { CostEstimate } from "@/lib/types";
-import { formatCurrency, formatTokens } from "@/lib/format";
+import {
+  formatCurrency,
+  formatMonthlyCost,
+  formatTokens,
+} from "@/lib/format";
 
 export function CostBreakdown({
   id,
@@ -48,10 +52,17 @@ export function CostBreakdown({
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-slate-200 pt-2">
           <dt className="font-semibold text-slate-900">Total</dt>
           <dd className="text-sm font-semibold tabular-nums text-slate-900">
-            {formatCurrency(estimate.totalCost)} / month
+            {formatMonthlyCost(estimate.totalCost)}
           </dd>
         </div>
       </dl>
+
+      {estimate.model.notes ? (
+        <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-600">
+          <span className="font-medium text-slate-700">Pricing scope: </span>
+          {estimate.model.notes}
+        </p>
+      ) : null}
     </div>
   );
 }

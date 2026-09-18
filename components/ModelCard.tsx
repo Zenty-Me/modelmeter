@@ -1,19 +1,30 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ExternalLink, TrendingDown } from "lucide-react";
 import { useState } from "react";
-import type { CostEstimate } from "@/lib/types";
+import type { CostComparisonEntry } from "@/lib/types";
 import {
   formatCheckedAt,
   formatCurrency,
+  formatPercentage,
   formatPricePerMillion,
+  formatSignedCurrency,
 } from "@/lib/format";
 import { CostBreakdown } from "./CostBreakdown";
 
-export function ModelCard({ estimate }: { estimate: CostEstimate }) {
+type ModelCardProps = {
+  entry: CostComparisonEntry;
+  /** Hidden when every model costs the same, so no false ranking is implied. */
+  hasCostRange: boolean;
+};
+
+export function ModelCard({ entry, hasCostRange }: ModelCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { estimate, isLowestCost, absoluteDifference, percentageDifference } =
+    entry;
   const { model } = estimate;
   const breakdownId = `breakdown-${model.id}`;
+  const showRanking = hasCostRange && !isLowestCost;
 
   return (
     <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
@@ -21,9 +32,10 @@ export function ModelCard({ estimate }: { estimate: CostEstimate }) {
         <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700">
           {model.provider}
         </span>
-        {model.isDemoData ? (
-          <span className="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
-            Demo Data
+        {isLowestCost && hasCostRange ? (
+          <span className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+            <TrendingDown className="h-3 w-3" aria-hidden="true" />
+            Lowest estimated cost
           </span>
         ) : null}
       </div>
@@ -31,6 +43,7 @@ export function ModelCard({ estimate }: { estimate: CostEstimate }) {
       <h3 className="mt-3 text-base font-semibold text-slate-900">
         {model.model}
       </h3>
+      <p className="mt-0.5 font-mono text-xs text-slate-500">{model.modelId}</p>
 
       <p className="mt-4 text-xs font-medium uppercase tracking-wide text-slate-500">
         Estimated Monthly Cost
@@ -38,6 +51,17 @@ export function ModelCard({ estimate }: { estimate: CostEstimate }) {
       <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
         {formatCurrency(estimate.totalCost)}
       </p>
+      {showRanking ? (
+        <p className="mt-1 text-xs text-slate-600">
+          <span className="font-medium text-slate-900">
+            {formatSignedCurrency(absoluteDifference)}
+          </span>{" "}
+          vs lowest-cost option
+          {percentageDifference !== null
+            ? ` · ${formatPercentage(percentageDifference)} higher estimated cost`
+            : ""}
+        </p>
+      ) : null}
 
       <dl className="mt-4 space-y-2 text-sm">
         <DetailRow
@@ -50,24 +74,30 @@ export function ModelCard({ estimate }: { estimate: CostEstimate }) {
         />
         <div className="border-t border-slate-200 pt-2">
           <DetailRow
-            label="Input cost"
+            label="Estimated input cost"
             value={formatCurrency(estimate.inputCost)}
             emphasis
           />
         </div>
         <DetailRow
-          label="Output cost"
+          label="Estimated output cost"
           value={formatCurrency(estimate.outputCost)}
           emphasis
         />
       </dl>
+
+      {model.contextNotes ? (
+        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+          {model.contextNotes}
+        </p>
+      ) : null}
 
       <button
         type="button"
         onClick={() => setIsExpanded((open) => !open)}
         aria-expanded={isExpanded}
         aria-controls={breakdownId}
-        className="mt-4 inline-flex items-center gap-1 rounded-md text-xs font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        className="mt-4 inline-flex items-center gap-1 self-start rounded-md text-xs font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
       >
         <ChevronDown
           className={`h-3.5 w-3.5 transition-transform ${
@@ -82,8 +112,20 @@ export function ModelCard({ estimate }: { estimate: CostEstimate }) {
         <CostBreakdown id={breakdownId} estimate={estimate} />
       ) : null}
 
-      <div className="mt-auto pt-4 text-xs text-slate-500">
-        <p>Pricing source: {model.sourceName}</p>
+      <div className="mt-auto space-y-1 pt-4 text-xs text-slate-500">
+        <p>Pricing mode: Standard</p>
+        <p>
+          Pricing source:{" "}
+          <a
+            href={model.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-sm font-medium text-indigo-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Official provider documentation
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+          </a>
+        </p>
         <p>Last checked: {formatCheckedAt(model.checkedAt)}</p>
       </div>
     </article>

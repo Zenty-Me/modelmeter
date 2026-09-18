@@ -7,7 +7,7 @@ export function Hero() {
     <section id="top" className="border-b border-slate-200 bg-white">
       <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-20">
         <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-          Version 0.1 · Demo pricing dataset
+          Version 0.2 · Verified pricing
         </span>
 
         <h1 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
@@ -33,8 +33,8 @@ export function Hero() {
         </ul>
 
         <p className="mt-4 text-xs text-slate-500">
-          Provider names are shown for context only. No official pricing has
-          been loaded yet.
+          Standard text pricing, verified against official provider
+          documentation.
         </p>
       </div>
     </section>

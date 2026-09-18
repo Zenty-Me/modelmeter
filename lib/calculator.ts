@@ -1,5 +1,6 @@
 import type {
   AIModelPricing,
+  CostComparison,
   CostEstimate,
   MonthlyTokens,
   UsageDraft,
@@ -114,4 +115,49 @@ export function sortEstimatesByCost(
   estimates: CostEstimate[],
 ): CostEstimate[] {
   return [...estimates].sort((a, b) => a.totalCost - b.totalCost);
+}
+
+/** Relative to a zero baseline a percentage would be meaningless, so it is null. */
+function percentageOf(part: number, baseline: number): number | null {
+  return baseline > 0 ? (part / baseline) * 100 : null;
+}
+
+/**
+ * Ranks estimates by estimated monthly cost and derives the figures shown in
+ * the comparison summary. Cost only — no signal about model quality is implied.
+ */
+export function calculateCostComparison(
+  estimates: CostEstimate[],
+): CostComparison {
+  const sorted = sortEstimatesByCost(estimates);
+  const lowest = sorted.length > 0 ? sorted[0] : null;
+  const highest = sorted.length > 0 ? sorted[sorted.length - 1] : null;
+
+  const lowestCost = lowest?.totalCost ?? 0;
+  const highestCost = highest?.totalCost ?? 0;
+
+  const entries = sorted.map((estimate) => {
+    const absoluteDifference = clamp(estimate.totalCost - lowestCost);
+
+    return {
+      estimate,
+      isLowestCost: lowest !== null && estimate.model.id === lowest.model.id,
+      absoluteDifference,
+      percentageDifference: percentageOf(absoluteDifference, lowestCost),
+    };
+  });
+
+  const potentialDifference = clamp(highestCost - lowestCost);
+
+  return {
+    entries,
+    lowest,
+    highest,
+    potentialDifference,
+    potentialPercentageDifference: percentageOf(
+      potentialDifference,
+      lowestCost,
+    ),
+    hasCostRange: potentialDifference > 0,
+  };
 }

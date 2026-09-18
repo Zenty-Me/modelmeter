@@ -26,9 +26,21 @@ export default function Home() {
             sanity-check a budget before the invoice arrives.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-slate-700">
-            This version runs on a demo pricing dataset. Official prices will be
-            added manually once each provider&apos;s pricing page has been
-            reviewed.
+            Pricing is maintained by hand from each provider&apos;s official
+            documentation. Every entry records the model identifier, the
+            standard-tier input and output prices, the pricing mode, the source
+            URL and the date it was last verified — see{" "}
+            <a
+              href="#pricing-sources"
+              className="rounded-sm font-medium text-indigo-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Pricing Sources
+            </a>
+            .
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            ModelMeter compares estimated cost only. It does not rank model
+            quality.
           </p>
         </div>
       </section>

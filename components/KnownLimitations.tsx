@@ -1,13 +1,14 @@
 import { CircleAlert } from "lucide-react";
 
 const LIMITATIONS = [
-  "Only standard text token pricing is considered.",
-  "Batch pricing is not included.",
-  "Prompt caching is not included.",
-  "Long-context pricing differences are not included.",
-  "Tool usage and additional API fees are not included.",
-  "Prices may change over time.",
-  "Always verify pricing with the official provider website.",
+  "Pricing comparison does not measure model quality, latency or capability — only estimated cost.",
+  "Only standard, on-demand text token pricing is compared.",
+  "Prompt caching is excluded, both cache writes and cache reads.",
+  "Batch, Flex and Fast/Priority pricing tiers are excluded.",
+  "Tool calls, web search, image, audio and video usage are excluded.",
+  "Long-context price tiers are not applied. Each model is estimated at its base short-context tier, and any published higher tier is stated on the model card.",
+  "Input and output tokens are treated as flat averages, so real traffic with mixed prompt sizes will differ.",
+  "API pricing changes over time. The official provider pages remain the source of truth.",
 ];
 
 export function KnownLimitations() {
