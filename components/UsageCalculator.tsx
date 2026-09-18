@@ -15,6 +15,8 @@ type FieldConfig = {
   key: keyof UsageDraft;
   label: string;
   hint: string;
+  /** Optional contextual help, only where the input needs extra explanation. */
+  note?: string;
 };
 
 const FIELDS: readonly FieldConfig[] = [
@@ -27,11 +29,13 @@ const FIELDS: readonly FieldConfig[] = [
     key: "inputTokensPerRequest",
     label: "Average Input Tokens / Request",
     hint: "Prompt tokens sent per request",
+    note: "Some providers change pricing for long-context requests. ModelMeter applies supported pricing tiers automatically.",
   },
   {
     key: "outputTokensPerRequest",
     label: "Average Output Tokens / Request",
     hint: "Completion tokens returned per request",
+    note: "Include billable reasoning / thinking tokens where your provider charges for them.",
   },
 ];
 
@@ -98,6 +102,7 @@ export function UsageCalculator({ draft, onChange }: UsageCalculatorProps) {
             id={field.key}
             label={field.label}
             hint={field.hint}
+            note={field.note}
             value={draft[field.key]}
             onValueChange={(value) =>
               onChange({ ...draft, [field.key]: value })
@@ -113,6 +118,7 @@ type NumberFieldProps = {
   id: string;
   label: string;
   hint: string;
+  note?: string;
   value: string;
   onValueChange: (value: string) => void;
 };
@@ -121,12 +127,17 @@ function NumberField({
   id,
   label,
   hint,
+  note,
   value,
   onValueChange,
 }: NumberFieldProps) {
   const message = getFieldMessage(value);
   const hintId = `${id}-hint`;
+  const noteId = `${id}-note`;
   const messageId = `${id}-message`;
+  const describedBy = [hintId, note ? noteId : null, message ? messageId : null]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div>
@@ -149,10 +160,15 @@ function NumberField({
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
         onKeyDown={blockInvalidKeys}
-        aria-describedby={message ? messageId : hintId}
+        aria-describedby={describedBy}
         aria-invalid={message ? true : undefined}
         className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
       />
+      {note ? (
+        <p id={noteId} className="mt-1.5 text-xs leading-relaxed text-slate-500">
+          {note}
+        </p>
+      ) : null}
       {message ? (
         <p id={messageId} className="mt-1.5 text-xs text-amber-700">
           {message}

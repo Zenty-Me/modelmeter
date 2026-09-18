@@ -16,14 +16,14 @@ export function CostBreakdown({
     {
       label: "Input",
       formula: `${formatTokens(estimate.monthlyTokens.inputTokens)} tokens × ${formatCurrency(
-        estimate.model.inputPricePerMillion,
+        estimate.tier.inputPricePerMillion,
       )} / 1M`,
       cost: estimate.inputCost,
     },
     {
       label: "Output",
       formula: `${formatTokens(estimate.monthlyTokens.outputTokens)} tokens × ${formatCurrency(
-        estimate.model.outputPricePerMillion,
+        estimate.tier.outputPricePerMillion,
       )} / 1M`,
       cost: estimate.outputCost,
     },
@@ -34,6 +34,10 @@ export function CostBreakdown({
       id={id}
       className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-4"
     >
+      <p className="mb-3 text-xs text-slate-600">
+        <span className="font-medium text-slate-700">Pricing tier applied: </span>
+        {estimate.tier.label}
+      </p>
       <dl className="space-y-2 text-xs">
         {steps.map((step) => (
           <div

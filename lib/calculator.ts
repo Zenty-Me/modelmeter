@@ -3,9 +3,11 @@ import type {
   CostComparison,
   CostEstimate,
   MonthlyTokens,
+  PricingTier,
   UsageDraft,
   UsageInput,
 } from "./types";
+import { resolvePricingTier } from "./pricing-engine";
 
 const TOKENS_PER_MILLION = 1_000_000;
 
@@ -65,17 +67,17 @@ export function calculateMonthlyTokens(usage: UsageInput): MonthlyTokens {
 
 export function calculateInputCost(
   inputTokens: number,
-  model: AIModelPricing,
+  tier: PricingTier,
 ): number {
-  const price = clamp(model.inputPricePerMillion);
+  const price = clamp(tier.inputPricePerMillion);
   return clamp((clamp(inputTokens) / TOKENS_PER_MILLION) * price);
 }
 
 export function calculateOutputCost(
   outputTokens: number,
-  model: AIModelPricing,
+  tier: PricingTier,
 ): number {
-  const price = clamp(model.outputPricePerMillion);
+  const price = clamp(tier.outputPricePerMillion);
   return clamp((clamp(outputTokens) / TOKENS_PER_MILLION) * price);
 }
 
@@ -86,16 +88,28 @@ export function calculateTotalCost(
   return clamp(clamp(inputCost) + clamp(outputCost));
 }
 
+/**
+ * Costs a model against a usage estimate.
+ *
+ * The pricing tier is resolved from the average input tokens per request, so a
+ * provider's long-context rate is applied automatically without the caller
+ * knowing anything about the model.
+ */
 export function calculateModelEstimate(
   model: AIModelPricing,
   usage: UsageInput,
 ): CostEstimate {
-  const monthlyTokens = calculateMonthlyTokens(usage);
-  const inputCost = calculateInputCost(monthlyTokens.inputTokens, model);
-  const outputCost = calculateOutputCost(monthlyTokens.outputTokens, model);
+  const safe = normalizeUsage(usage);
+  const monthlyTokens = calculateMonthlyTokens(safe);
+  const tier = resolvePricingTier(model, safe.inputTokensPerRequest);
+
+  const inputCost = calculateInputCost(monthlyTokens.inputTokens, tier);
+  const outputCost = calculateOutputCost(monthlyTokens.outputTokens, tier);
 
   return {
     model,
+    tier,
+    inputTokensPerRequest: safe.inputTokensPerRequest,
     monthlyTokens,
     inputCost,
     outputCost,
@@ -123,6 +137,25 @@ function percentageOf(part: number, baseline: number): number | null {
 }
 
 /**
+ * Saving achieved by moving from the highest cost to the lowest.
+ *
+ * The highest cost is the denominator: it is the amount the user is spending
+ * today, so the result reads as "this share of your current spend disappears".
+ * Dividing by the lowest cost instead would answer a different question
+ * ("how much more expensive is the pricier option") and can exceed 100%.
+ */
+function savingsPercentageOf(highestCost: number, lowestCost: number): number {
+  if (!(highestCost > 0)) return 0;
+
+  const percentage = ((highestCost - lowestCost) / highestCost) * 100;
+  if (!Number.isFinite(percentage)) return 0;
+
+  // lowestCost <= highestCost by construction, so the ratio is already within
+  // [0, 100]; clamping guarantees the UI can never render a nonsense figure.
+  return Math.min(100, Math.max(0, percentage));
+}
+
+/**
  * Ranks estimates by estimated monthly cost and derives the figures shown in
  * the comparison summary. Cost only — no signal about model quality is implied.
  */
@@ -143,21 +176,18 @@ export function calculateCostComparison(
       estimate,
       isLowestCost: lowest !== null && estimate.model.id === lowest.model.id,
       absoluteDifference,
-      percentageDifference: percentageOf(absoluteDifference, lowestCost),
+      higherThanLowestPercentage: percentageOf(absoluteDifference, lowestCost),
     };
   });
 
-  const potentialDifference = clamp(highestCost - lowestCost);
+  const savingsAmount = clamp(highestCost - lowestCost);
 
   return {
     entries,
     lowest,
     highest,
-    potentialDifference,
-    potentialPercentageDifference: percentageOf(
-      potentialDifference,
-      lowestCost,
-    ),
-    hasCostRange: potentialDifference > 0,
+    savingsAmount,
+    savingsPercentage: savingsPercentageOf(highestCost, lowestCost),
+    hasCostRange: savingsAmount > 0,
   };
 }

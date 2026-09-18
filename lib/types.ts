@@ -8,6 +8,27 @@ export type Provider = "OpenAI" | "Anthropic" | "Google";
  */
 export type PricingMode = "standard";
 
+/**
+ * A single published price point for a model.
+ *
+ * Tiers are plain data: the resolver in `lib/pricing-engine.ts` reads these
+ * bounds, and no component ever has to know a model by name.
+ */
+export interface PricingTier {
+  id: string;
+  label: string;
+  /** Badge shown on the model card when this tier is the one that applies. */
+  badgeLabel?: string;
+
+  inputPricePerMillion: number;
+  outputPricePerMillion: number;
+
+  /** Inclusive lower bound on input tokens in a single request. */
+  minInputTokens?: number;
+  /** Inclusive upper bound on input tokens in a single request. */
+  maxInputTokens?: number;
+}
+
 export interface AIModelPricing {
   id: string;
   provider: Provider;
@@ -16,15 +37,18 @@ export interface AIModelPricing {
   /** Exact identifier passed to the provider's API. */
   modelId: string;
 
-  inputPricePerMillion: number;
-  outputPricePerMillion: number;
+  /**
+   * Ordered pricing tiers. The first entry is the base tier and is also the
+   * fallback when no bounds match.
+   */
+  pricingTiers: PricingTier[];
 
   currency: Currency;
   pricingMode: PricingMode;
 
   /**
    * Documents pricing rules that exist for this model but are outside the
-   * V0.2 scope. Never left implicit: an unmodelled tier must be stated here.
+   * V0.3 scope. Never left implicit: an unmodelled tier must be stated here.
    */
   contextNotes?: string;
 
@@ -59,6 +83,10 @@ export interface MonthlyTokens {
 
 export interface CostEstimate {
   model: AIModelPricing;
+  /** The tier selected for this usage by `resolvePricingTier`. */
+  tier: PricingTier;
+  /** The value that selected the tier, kept so cards can explain themselves. */
+  inputTokensPerRequest: number;
   monthlyTokens: MonthlyTokens;
   inputCost: number;
   outputCost: number;
@@ -71,8 +99,15 @@ export interface CostComparisonEntry {
   isLowestCost: boolean;
   /** Difference against the lowest-cost estimate. Zero for the cheapest one. */
   absoluteDifference: number;
-  /** `null` when there is no meaningful baseline (lowest cost is zero). */
-  percentageDifference: number | null;
+  /**
+   * How much more expensive this model is than the lowest-cost one:
+   * `(current - lowest) / lowest * 100`. `null` when the lowest cost is zero,
+   * because a percentage against a zero baseline is meaningless.
+   *
+   * This is NOT the same quantity as `CostComparison.savingsPercentage` — see
+   * the note there before reusing either one.
+   */
+  higherThanLowestPercentage: number | null;
 }
 
 export interface CostComparison {
@@ -80,8 +115,18 @@ export interface CostComparison {
   entries: CostComparisonEntry[];
   lowest: CostEstimate | null;
   highest: CostEstimate | null;
-  potentialDifference: number;
-  potentialPercentageDifference: number | null;
+  /** `highest.totalCost - lowest.totalCost`. Zero when all models tie. */
+  savingsAmount: number;
+  /**
+   * Share of the highest cost that is avoided by choosing the lowest instead:
+   * `(highest - lowest) / highest * 100`. The denominator is the cost the user
+   * is currently paying, which is what makes this a saving.
+   *
+   * Kept deliberately separate from `higherThanLowestPercentage`, which divides
+   * by the *lowest* cost to answer a different question. Never mix the two.
+   * Always a finite number in `[0, 100]`; `0` when the highest cost is zero.
+   */
+  savingsPercentage: number;
   /**
    * False when every model costs the same — for example with zero usage.
    * The ranking UI is hidden in that case rather than claiming a winner.

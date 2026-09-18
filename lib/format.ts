@@ -25,6 +25,21 @@ export function formatTokens(value: number): string {
   return formatNumber(value);
 }
 
+const compactTokenFormatter = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/**
+ * Always abbreviates thousands and above (`2000` → `2K`, `272000` → `272K`).
+ * Used for pricing thresholds, where the exact digit count is noise.
+ */
+export function formatCompactTokens(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+
+  return compactTokenFormatter.format(Math.round(value));
+}
+
 export function formatCurrency(value: number): string {
   if (!Number.isFinite(value)) return "$0.00";
 

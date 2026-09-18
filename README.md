@@ -4,8 +4,8 @@
 
 ModelMeter is a single-page AI API cost calculator. You enter your expected usage — monthly requests, average input tokens and average output tokens — and it estimates the monthly cost for each model in the pricing dataset so you can compare them side by side.
 
-> **Status: Version 0.2 — verified pricing dataset.**
-> Six text models across OpenAI, Anthropic and Google are priced from the providers' own pricing documentation. See [Pricing methodology](#pricing-methodology).
+> **Status: Version 0.3 — pricing tier engine.**
+> Six text models across OpenAI, Anthropic and Google are priced from the providers' own pricing documentation, and published context-length price tiers are applied automatically. See [Pricing methodology](#pricing-methodology) and [Pricing tiers](#pricing-tiers).
 
 ## What it does
 
@@ -25,6 +25,8 @@ ModelMeter is a single-page AI API cost calculator. You enter your expected usag
    Estimated Monthly Cost = Input Cost + Output Cost
    ```
 
+   Where a provider publishes more than one price for a model depending on how much context a request carries, ModelMeter selects the tier that matches your average input tokens per request before doing the arithmetic. See [Pricing tiers](#pricing-tiers).
+
 4. Models are ranked from the lowest to the highest estimated monthly cost. The cheapest option is labelled **Lowest estimated cost**, and every other model shows how much more it would cost in absolute and percentage terms.
 
 ## Features
@@ -32,8 +34,10 @@ ModelMeter is a single-page AI API cost calculator. You enter your expected usag
 - Usage calculator with validation for empty, negative and non-numeric input
 - Scale presets (Small / Medium / Large) and scenario presets (Custom / Chatbot / RAG / AI Agent)
 - Usage summary with formatted token counts (e.g. `100,000`, `200M`)
+- Data-driven pricing tiers: provider context thresholds resolve automatically as you type
 - Comparison summary showing the lowest estimate, the highest estimate and the potential difference
-- Model cards with verified input / output prices, estimated input and output cost, pricing mode, source link and verification date
+- Model cards with the applied pricing tier, verified input / output prices, estimated input and output cost, pricing mode, source link and verification date
+- Long-context badge on cards where a higher context tier is in effect
 - Expandable cost breakdown showing the formula behind each number
 - Pricing Sources section linking to each provider's official pricing page
 - Known Limitations section stating what the estimate does **not** cover
@@ -94,7 +98,8 @@ modelmeter/
 │   └── Footer.tsx
 ├── lib/
 │   ├── types.ts           # Shared domain types
-│   ├── pricing.ts         # Verified pricing dataset and sources
+│   ├── pricing.ts         # Verified pricing dataset and sources (tier data)
+│   ├── pricing-engine.ts  # Pure tier resolution from the tier bounds
 │   ├── presets.ts         # Usage presets
 │   ├── calculator.ts      # Pure calculation and comparison functions
 │   ├── format.ts          # Number, token, currency and date formatting
@@ -113,9 +118,8 @@ The dataset records the following for every model:
 | `provider` | `OpenAI`, `Anthropic` or `Google` |
 | `model` | Model name as published by the provider |
 | `modelId` | Exact identifier passed to the provider's API |
-| `inputPricePerMillion` | Standard-tier input price per 1M tokens, in USD |
-| `outputPricePerMillion` | Standard-tier output price per 1M tokens, in USD |
-| `pricingMode` | `standard` — the only tier compared in V0.2 |
+| `pricingTiers` | Ordered list of published price points, base tier first — see [Pricing tiers](#pricing-tiers) |
+| `pricingMode` | `standard` — the only service tier compared |
 | `contextNotes` | Pricing rules that exist for the model but are out of scope |
 | `sourceName` / `sourceUrl` | The official page the price was read from |
 | `checkedAt` | Date the price was verified by hand |
@@ -123,7 +127,7 @@ The dataset records the following for every model:
 
 **Why pricing is maintained by hand.** Provider pricing structures differ from one another and change over time. Some providers publish separate tiers for batch processing, prompt caching, priority processing, regional inference and long context prompts. Verifying each price against the provider's own page keeps the comparison transparent and auditable: every number on the page can be traced back to a dated, linked source.
 
-**Scope of the comparison.** Only standard, on-demand text token pricing is compared. Batch, Flex and Fast/Priority tiers, prompt caching, tool and search usage, multi-modal token pricing and regional or enterprise pricing are all excluded. Where a provider publishes a higher tier for the same model — for example OpenAI's long-context tier or Google's price for prompts above 200,000 tokens — the base tier is used and the difference is stated on the model card rather than silently ignored.
+**Scope of the comparison.** Only standard, on-demand text token pricing is compared. Batch, Flex and Fast/Priority tiers, prompt caching, tool and search usage, multi-modal token pricing and regional or enterprise pricing are all excluded. Where a provider publishes a higher tier for the same model, the tier that matches your usage is selected automatically rather than the difference being ignored — see [Pricing tiers](#pricing-tiers).
 
 **Cost only.** ModelMeter compares estimated cost only. It does not rank model quality, latency or capability, and the labels on the page describe cost, not fitness for a task.
 
@@ -131,14 +135,17 @@ The dataset records the following for every model:
 
 Verified on 2026-09-18.
 
-| Provider | Model | Input / 1M | Output / 1M |
-|---|---|---|---|
-| OpenAI | `gpt-5.6-luna` | $0.20 | $1.20 |
-| OpenAI | `gpt-5.6-terra` | $2.00 | $12.00 |
-| Anthropic | Claude Sonnet 5 (`claude-sonnet-5`) | $2.00 | $10.00 |
-| Anthropic | Claude Opus 5 (`claude-opus-5`) | $5.00 | $25.00 |
-| Google | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`) | $0.25 | $1.50 |
-| Google | Gemini 3.1 Pro Preview (`gemini-3.1-pro-preview`) | $2.00 | $12.00 |
+| Provider | Model | Tier | Input / 1M | Output / 1M |
+|---|---|---|---|---|
+| OpenAI | `gpt-5.6-luna` | Standard context | $0.20 | $1.20 |
+| OpenAI | `gpt-5.6-luna` | Long context | $0.40 | $1.80 |
+| OpenAI | `gpt-5.6-terra` | Standard context | $2.00 | $12.00 |
+| OpenAI | `gpt-5.6-terra` | Long context | $4.00 | $18.00 |
+| Anthropic | Claude Sonnet 5 (`claude-sonnet-5`) | Standard context | $2.00 | $10.00 |
+| Anthropic | Claude Opus 5 (`claude-opus-5`) | Standard context | $5.00 | $25.00 |
+| Google | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`) | Standard context | $0.25 | $1.50 |
+| Google | Gemini 3.1 Pro Preview (`gemini-3.1-pro-preview`) | Standard context | $2.00 | $12.00 |
+| Google | Gemini 3.1 Pro Preview (`gemini-3.1-pro-preview`) | Long context | $4.00 | $18.00 |
 
 Sources:
 
@@ -156,6 +163,26 @@ Sources:
 
 Do not use third-party price aggregators. Do not guess prices.
 
+## Pricing tiers
+
+Some providers charge more once a single request carries a lot of context. ModelMeter models that as data rather than as special cases: each model owns an ordered list of pricing tiers, and `lib/pricing-engine.ts` selects the tier whose bounds contain your average input tokens per request.
+
+Tier bounds are inclusive, so a threshold of 272,000 means a request of 272,000 tokens stays on the base tier while 272,001 moves to the long-context tier. Because resolution is a plain numeric comparison over the tier bounds, no component ever tests a model by name.
+
+### Currently supported tier rules
+
+| Provider | Model | Threshold | Base tier | Long-context tier |
+|---|---|---|---|---|
+| OpenAI | GPT-5.6 Luna | > 272,000 input tokens per request | $0.20 in / $1.20 out | $0.40 in / $1.80 out |
+| OpenAI | GPT-5.6 Terra | > 272,000 input tokens per request | $2.00 in / $12.00 out | $4.00 in / $18.00 out |
+| Google | Gemini 3.1 Pro Preview | > 200,000 input tokens per request | $2.00 in / $12.00 out | $4.00 in / $18.00 out |
+
+Models without a published threshold — Claude Sonnet 5, Claude Opus 5 and Gemini 3.1 Flash-Lite — have a single tier and are always priced at their standard rate.
+
+### How the threshold is evaluated
+
+A threshold is evaluated against **the average input tokens per request** that you enter, not against a measured distribution of request sizes. This is an approximation: a workload with half its requests at 1,000 tokens and half at 600,000 tokens can average below a threshold while still being billed at the higher tier for its long requests. See [Known Limitations](#known-limitations).
+
 ## Known Limitations
 
 - Pricing comparison does not measure model quality, latency or capability — only estimated cost.
@@ -163,8 +190,9 @@ Do not use third-party price aggregators. Do not guess prices.
 - Prompt caching is excluded, both cache writes and cache reads.
 - Batch, Flex and Fast/Priority pricing tiers are excluded.
 - Tool calls, web search, image, audio and video usage are excluded.
-- Long-context price tiers are not applied. Each model is estimated at its base short-context tier, and any published higher tier is stated on the model card.
-- Input and output tokens are treated as flat averages, so real traffic with mixed prompt sizes will differ.
+- Context tiers are applied for the models where the provider publishes a threshold. Models without a published threshold are estimated at their single standard rate.
+- Context-tier calculations use the average input tokens per request. Real workloads with mixed prompt sizes may produce different costs.
+- Output token estimates should include billable reasoning/thinking tokens where applicable. ModelMeter does not estimate reasoning token usage for you.
 - API pricing changes over time. The official provider pages remain the source of truth.
 
 ## Deployment
@@ -175,10 +203,10 @@ Import the repository on Vercel and keep the default settings — no environment
 
 ## Future Improvements
 
-- Apply published long-context tiers per model instead of the base tier
+- Accept a request-size distribution instead of a single average, so mixed short and long requests can be priced exactly
 - Prompt caching support
 - Batch API pricing
-- More AI providers and model tiers
+- More AI providers and tier rules
 - Shareable cost estimates
 - URL query state
 - Pricing change history

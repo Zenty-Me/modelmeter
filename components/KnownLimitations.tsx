@@ -6,8 +6,9 @@ const LIMITATIONS = [
   "Prompt caching is excluded, both cache writes and cache reads.",
   "Batch, Flex and Fast/Priority pricing tiers are excluded.",
   "Tool calls, web search, image, audio and video usage are excluded.",
-  "Long-context price tiers are not applied. Each model is estimated at its base short-context tier, and any published higher tier is stated on the model card.",
-  "Input and output tokens are treated as flat averages, so real traffic with mixed prompt sizes will differ.",
+  "Context tiers are applied for the models where the provider publishes a threshold. Models without a published threshold are estimated at their single standard rate.",
+  "Context-tier calculations use the average input tokens per request. Real workloads with mixed prompt sizes may produce different costs.",
+  "Output token estimates should include billable reasoning/thinking tokens where applicable. ModelMeter does not estimate reasoning token usage for you.",
   "API pricing changes over time. The official provider pages remain the source of truth.",
 ];
 

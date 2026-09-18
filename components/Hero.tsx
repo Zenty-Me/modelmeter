@@ -1,4 +1,4 @@
-import { SITE_TAGLINE } from "@/lib/site";
+import { SITE_TAGLINE, SITE_VERSION } from "@/lib/site";
 
 const PROVIDER_NAMES = ["OpenAI", "Anthropic", "Google Gemini"];
 
@@ -7,7 +7,7 @@ export function Hero() {
     <section id="top" className="border-b border-slate-200 bg-white">
       <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-20">
         <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-          Version 0.2 · Verified pricing
+          Version {SITE_VERSION} · Verified pricing with context tiers
         </span>
 
         <h1 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">

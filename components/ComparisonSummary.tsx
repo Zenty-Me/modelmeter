@@ -10,7 +10,7 @@ export function ComparisonSummary({
 }: {
   comparison: CostComparison;
 }) {
-  const { lowest, highest, potentialDifference, potentialPercentageDifference } =
+  const { lowest, highest, savingsAmount, savingsPercentage, hasCostRange } =
     comparison;
 
   if (!lowest || !highest) return null;
@@ -20,7 +20,7 @@ export function ComparisonSummary({
     { label: "Highest", value: formatMonthlyCost(highest.totalCost) },
     {
       label: "Potential cost difference",
-      value: formatMonthlyCost(potentialDifference),
+      value: formatMonthlyCost(savingsAmount),
     },
   ];
 
@@ -47,7 +47,7 @@ export function ComparisonSummary({
       </dl>
 
       <p className="mt-4 text-sm text-slate-600">
-        {comparison.hasCostRange
+        {hasCostRange
           ? `Based on your usage, the cheapest option costs ${formatCurrency(
               lowest.totalCost,
             )} per month and the most expensive costs ${formatCurrency(
@@ -56,12 +56,13 @@ export function ComparisonSummary({
           : "Every model in the dataset estimates the same cost for this usage."}
       </p>
 
-      {comparison.hasCostRange && potentialPercentageDifference !== null ? (
+      {hasCostRange ? (
         <p className="mt-1 text-sm text-slate-600">
-          Switching from the most expensive option to the cheapest reduces the
-          estimate by{" "}
+          Switching from the highest-cost option to the lowest-cost option could
+          reduce the estimated monthly cost by{" "}
           <span className="font-medium text-slate-900">
-            {formatPercentage(potentialPercentageDifference)}
+            {formatCurrency(savingsAmount)} ({formatPercentage(savingsPercentage)}
+            )
           </span>
           .
         </p>

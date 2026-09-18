@@ -1,15 +1,18 @@
 "use client";
 
-import { ChevronDown, ExternalLink, TrendingDown } from "lucide-react";
+import { ChevronDown, ExternalLink, Scale, TrendingDown } from "lucide-react";
 import { useState } from "react";
 import type { CostComparisonEntry } from "@/lib/types";
 import {
   formatCheckedAt,
+  formatCompactTokens,
   formatCurrency,
+  formatNumber,
   formatPercentage,
   formatPricePerMillion,
   formatSignedCurrency,
 } from "@/lib/format";
+import { getContextThreshold, hasMultipleTiers } from "@/lib/pricing-engine";
 import { CostBreakdown } from "./CostBreakdown";
 
 type ModelCardProps = {
@@ -20,11 +23,17 @@ type ModelCardProps = {
 
 export function ModelCard({ entry, hasCostRange }: ModelCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { estimate, isLowestCost, absoluteDifference, percentageDifference } =
-    entry;
-  const { model } = estimate;
+  const {
+    estimate,
+    isLowestCost,
+    absoluteDifference,
+    higherThanLowestPercentage,
+  } = entry;
+  const { model, tier, inputTokensPerRequest } = estimate;
   const breakdownId = `breakdown-${model.id}`;
   const showRanking = hasCostRange && !isLowestCost;
+  const showTierBounds = hasMultipleTiers(model);
+  const threshold = getContextThreshold(model);
 
   return (
     <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
@@ -36,6 +45,12 @@ export function ModelCard({ entry, hasCostRange }: ModelCardProps) {
           <span className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800">
             <TrendingDown className="h-3 w-3" aria-hidden="true" />
             Lowest estimated cost
+          </span>
+        ) : null}
+        {tier.badgeLabel ? (
+          <span className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+            <Scale className="h-3 w-3" aria-hidden="true" />
+            {tier.badgeLabel}
           </span>
         ) : null}
       </div>
@@ -57,20 +72,39 @@ export function ModelCard({ entry, hasCostRange }: ModelCardProps) {
             {formatSignedCurrency(absoluteDifference)}
           </span>{" "}
           vs lowest-cost option
-          {percentageDifference !== null
-            ? ` · ${formatPercentage(percentageDifference)} higher estimated cost`
+          {higherThanLowestPercentage !== null
+            ? ` · ${formatPercentage(higherThanLowestPercentage)} higher than the lowest-cost option`
             : ""}
         </p>
       ) : null}
 
+      <dl className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs">
+        <TierRow label="Pricing tier" value={tier.label} />
+        {showTierBounds ? (
+          <>
+            <TierRow
+              label="Your average input"
+              // Exact value: at the boundary, `200,001` must not round to `200K`.
+              value={`${formatNumber(inputTokensPerRequest)} tokens / request`}
+            />
+            {threshold !== null ? (
+              <TierRow
+                label="Pricing threshold"
+                value={`${formatCompactTokens(threshold)} tokens / request`}
+              />
+            ) : null}
+          </>
+        ) : null}
+      </dl>
+
       <dl className="mt-4 space-y-2 text-sm">
         <DetailRow
           label="Input price"
-          value={formatPricePerMillion(model.inputPricePerMillion)}
+          value={formatPricePerMillion(tier.inputPricePerMillion)}
         />
         <DetailRow
           label="Output price"
-          value={formatPricePerMillion(model.outputPricePerMillion)}
+          value={formatPricePerMillion(tier.outputPricePerMillion)}
         />
         <div className="border-t border-slate-200 pt-2">
           <DetailRow
@@ -149,6 +183,15 @@ function DetailRow({ label, value, emphasis = false }: DetailRowProps) {
       >
         {value}
       </dd>
+    </div>
+  );
+}
+
+function TierRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 [&+&]:mt-1.5">
+      <dt className="text-slate-500">{label}</dt>
+      <dd className="font-medium tabular-nums text-slate-800">{value}</dd>
     </div>
   );
 }
