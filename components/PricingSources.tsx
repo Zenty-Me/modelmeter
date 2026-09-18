@@ -23,27 +23,26 @@ export function PricingSources() {
               key={source.provider}
               className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700">
                   {source.provider}
                 </span>
-                <span
-                  className={`text-xs font-medium ${
-                    source.isVerified ? "text-emerald-700" : "text-slate-500"
-                  }`}
-                >
-                  {source.isVerified ? "Verified" : "Not verified"}
-                </span>
+                {/* Only ever asserts verification when the dataset says so. */}
+                {source.isVerified ? (
+                  <span className="text-xs font-medium text-emerald-700">
+                    Verified
+                  </span>
+                ) : null}
               </div>
 
               <p className="mt-3 text-sm font-medium text-slate-900">
                 {source.sourceName}
               </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {source.isVerified
-                  ? `Verified ${formatCheckedAt(source.checkedAt)}`
-                  : "Not verified yet"}
-              </p>
+              {source.isVerified ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  Verified {formatCheckedAt(source.checkedAt)}
+                </p>
+              ) : null}
 
               <a
                 href={source.sourceUrl}

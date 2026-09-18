@@ -2,6 +2,7 @@ import { Hero } from "@/components/Hero";
 import { CostEstimator } from "@/components/CostEstimator";
 import { PricingSources } from "@/components/PricingSources";
 import { KnownLimitations } from "@/components/KnownLimitations";
+import { GITHUB_REPO_URL } from "@/lib/site";
 
 export default function Home() {
   return (
@@ -41,6 +42,19 @@ export default function Home() {
           <p className="mt-3 text-sm leading-relaxed text-slate-700">
             ModelMeter compares estimated cost only. It does not rank model
             quality.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            The source code and the full pricing dataset are public in the{" "}
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-medium text-indigo-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              ModelMeter GitHub repository
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+            .
           </p>
         </div>
       </section>

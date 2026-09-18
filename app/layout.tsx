@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "ModelMeter — AI API Cost Calculator",
   description:
-    "Estimate and compare AI API costs based on your expected token usage.",
+    "Estimate and compare AI API costs across leading providers using verified pricing data.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

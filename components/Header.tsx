@@ -31,7 +31,7 @@ export function Header() {
               <a
                 href={GITHUB_REPO_URL}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className={NAV_LINK_CLASS}
               >
                 <GitBranch className="h-4 w-4" aria-hidden="true" />

@@ -84,9 +84,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 /** Renders an ISO date (`2026-09-18`) as `Sep 18, 2026`. */
-export function formatCheckedAt(checkedAt?: string): string {
-  if (!checkedAt) return "Not verified yet";
-
+export function formatCheckedAt(checkedAt: string): string {
   const date = new Date(`${checkedAt}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return checkedAt;
 

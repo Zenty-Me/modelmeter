@@ -3,7 +3,7 @@ export type Currency = "USD";
 export type Provider = "OpenAI" | "Anthropic" | "Google";
 
 /**
- * V0.2 only compares standard, on-demand text pricing.
+ * ModelMeter compares standard, on-demand text pricing only.
  * Batch, Flex and Fast/Priority tiers are deliberately out of scope.
  */
 export type PricingMode = "standard";
@@ -48,7 +48,8 @@ export interface AIModelPricing {
 
   /**
    * Documents pricing rules that exist for this model but are outside the
-   * V0.3 scope. Never left implicit: an unmodelled tier must be stated here.
+   * comparison scope. Never left implicit: an unmodelled tier must be stated
+   * here.
    */
   contextNotes?: string;
 

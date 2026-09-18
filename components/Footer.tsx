@@ -31,7 +31,7 @@ export function Footer() {
                 <a
                   href={link.href}
                   {...(link.external
-                    ? { target: "_blank", rel: "noreferrer" }
+                    ? { target: "_blank", rel: "noopener noreferrer" }
                     : {})}
                   className="rounded-sm text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >

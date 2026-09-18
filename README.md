@@ -2,9 +2,13 @@
 
 **Know your AI bill before it arrives.**
 
-ModelMeter is a single-page AI API cost calculator. You enter your expected usage — monthly requests, average input tokens and average output tokens — and it estimates the monthly cost for each model in the pricing dataset so you can compare them side by side.
+ModelMeter is a lightweight developer tool for estimating and comparing AI API costs across OpenAI, Anthropic and Google Gemini using pricing verified from official provider documentation. You enter your expected usage — monthly requests, average input tokens and average output tokens — and it estimates the monthly cost for each model in the dataset so you can compare them side by side.
 
-> **Status: Version 0.3 — pricing tier engine.**
+**Live Demo: <https://modelmeter.vercel.app>**
+
+**Repository: <https://github.com/Zenty-Me/modelmeter>**
+
+> **Status: Version 1.0.**
 > Six text models across OpenAI, Anthropic and Google are priced from the providers' own pricing documentation, and published context-length price tiers are applied automatically. See [Pricing methodology](#pricing-methodology) and [Pricing tiers](#pricing-tiers).
 
 ## What it does
@@ -31,6 +35,8 @@ ModelMeter is a single-page AI API cost calculator. You enter your expected usag
 
 ## Features
 
+- Estimate monthly AI API cost from expected usage
+- Compare OpenAI, Anthropic and Google Gemini models on the same usage estimate
 - Usage calculator with validation for empty, negative and non-numeric input
 - Scale presets (Small / Medium / Large) and scenario presets (Custom / Chatbot / RAG / AI Agent)
 - Usage summary with formatted token counts (e.g. `100,000`, `200M`)
@@ -59,7 +65,7 @@ No database, no backend, no API keys and no third-party services are used.
 ## Getting Started
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/Zenty-Me/modelmeter.git
 cd modelmeter
 npm install
 npm run dev

@@ -132,7 +132,7 @@ export const PRICING_DATASET: AIModelPricing[] = [
     sourceUrl: "https://platform.claude.com/docs/en/about-claude/pricing",
     checkedAt: "2026-09-18",
     notes:
-      "Single published rate — no context-based tier. Anthropic offers a faster mode at 2x standard pricing and US-only inference at 1.1x; V0.3 compares standard pricing only. Prompt caching and the 50% batch discount are excluded.",
+      "Single published rate — no context-based tier. Anthropic offers a faster mode at 2x standard pricing and US-only inference at 1.1x; ModelMeter compares standard pricing only. Prompt caching and the 50% batch discount are excluded.",
     isDemoData: false,
   },
   {
