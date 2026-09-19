@@ -38,7 +38,7 @@ ModelMeter is a lightweight developer tool for estimating and comparing AI API c
 - Estimate monthly AI API cost from expected usage
 - Compare OpenAI, Anthropic and Google Gemini models on the same usage estimate
 - Usage calculator with validation for empty, negative and non-numeric input
-- Scale presets (Small / Medium / Large) and scenario presets (Custom / Chatbot / RAG / AI Agent)
+- Scale presets (Small / Medium / Large) and scenario presets (Custom / Chatbot / RAG / AI Agent) that fill all three inputs in one click, with the selected scenario switching to Custom as soon as you edit its numbers
 - Usage summary with formatted token counts (e.g. `100,000`, `200M`)
 - Data-driven pricing tiers: provider context thresholds resolve automatically as you type
 - Comparison summary showing the lowest estimate, the highest estimate and the potential difference
@@ -50,6 +50,8 @@ ModelMeter is a lightweight developer tool for estimating and comparing AI API c
 - Known Limitations section stating what the estimate does **not** cover
 - Responsive layout: 3 columns on desktop, 2 on tablet, 1 on mobile
 - Basic accessibility: labelled inputs, semantic buttons, visible focus states, external links marked `noopener noreferrer`
+
+ModelMeter includes illustrative scenario presets for quick exploration. Preset values are examples only and are not industry benchmarks.
 
 ## Tech Stack
 

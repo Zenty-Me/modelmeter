@@ -52,7 +52,9 @@ function readNumber(
  */
 export function parseCalculatorSearch(search: string): UsageInput {
   const params = new URLSearchParams(search);
-  const fallback = findPresetById(params.get("scenario"))?.usage ?? DEFAULT_USAGE;
+  // A preset carries the usage fields itself, so it can stand in for the
+  // fallback directly.
+  const fallback = findPresetById(params.get("scenario")) ?? DEFAULT_USAGE;
 
   return {
     monthlyRequests:

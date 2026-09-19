@@ -1,5 +1,12 @@
 import { PRICING_DATASET } from "../pricing";
-import type { AIModelPricing, CostEstimate, PricingTier } from "../types";
+import { findPresetById } from "../presets";
+import type {
+  AIModelPricing,
+  CostEstimate,
+  PricingTier,
+  UsageInput,
+  UsagePreset,
+} from "../types";
 
 /**
  * Shared fixtures for the unit tests. Deliberately imports nothing from the
@@ -13,6 +20,23 @@ export function findModel(id: string): AIModelPricing {
   if (!model) throw new Error(`Pricing dataset is missing model "${id}"`);
 
   return model;
+}
+
+/** Looks a preset up by id and fails loudly if it ever disappears. */
+export function presetById(id: string): UsagePreset {
+  const preset = findPresetById(id);
+
+  if (!preset) throw new Error(`Preset not found: "${id}"`);
+
+  return preset;
+}
+
+/** Just the three usage fields, without a preset's own metadata. */
+export function usageOf(preset: UsagePreset): UsageInput {
+  const { monthlyRequests, inputTokensPerRequest, outputTokensPerRequest } =
+    preset;
+
+  return { monthlyRequests, inputTokensPerRequest, outputTokensPerRequest };
 }
 
 const SYNTHETIC_TIER: PricingTier = {

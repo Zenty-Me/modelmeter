@@ -14,6 +14,7 @@ import {
   matchesCalculatorSearch,
   parseCalculatorSearch,
 } from "../url-state";
+import { presetById, usageOf } from "./test-helpers";
 
 /** Every parameter name present in a query string. */
 function paramNames(search: string): string[] {
@@ -22,10 +23,7 @@ function paramNames(search: string): string[] {
 
 /** The usage a scenario preset stands for, or a loud failure. */
 function presetUsage(id: string): UsageInput {
-  const preset = SCENARIO_PRESETS.find((entry) => entry.id === id);
-  if (!preset) throw new Error(`Missing scenario preset: ${id}`);
-
-  return preset.usage;
+  return usageOf(presetById(id));
 }
 
 describe("reading calculator inputs from the URL", () => {
@@ -146,7 +144,7 @@ describe("scenario presets in the URL", () => {
   it("expands a scale preset id too, so every shareable link round-trips", () => {
     for (const preset of [...SIZE_PRESETS, ...SCENARIO_PRESETS]) {
       expect(parseCalculatorSearch(`?scenario=${preset.id}`)).toEqual(
-        preset.usage,
+        usageOf(preset),
       );
     }
   });
@@ -181,12 +179,12 @@ describe("writing calculator inputs to the URL", () => {
   });
 
   it("writes a scenario preset as its id rather than as three numbers", () => {
-    expect(buildCalculatorSearch(presetUsage("rag"))).toBe("scenario=rag");
+    expect(buildCalculatorSearch(presetById("rag"))).toBe("scenario=rag");
   });
 
   it("writes scale presets out in full, so `scenario` keeps its meaning", () => {
     for (const preset of SIZE_PRESETS) {
-      const search = buildCalculatorSearch(preset.usage);
+      const search = buildCalculatorSearch(preset);
 
       if (search === "") continue; // medium is the default estimate
 
@@ -197,8 +195,8 @@ describe("writing calculator inputs to the URL", () => {
   it("only ever stores public calculator inputs", () => {
     const searches = [
       buildCalculatorSearch(DEFAULT_USAGE),
-      ...SIZE_PRESETS.map((preset) => buildCalculatorSearch(preset.usage)),
-      ...SCENARIO_PRESETS.map((preset) => buildCalculatorSearch(preset.usage)),
+      ...SIZE_PRESETS.map((preset) => buildCalculatorSearch(preset)),
+      ...SCENARIO_PRESETS.map((preset) => buildCalculatorSearch(preset)),
       buildCalculatorSearch({
         monthlyRequests: 7,
         inputTokensPerRequest: 11,
@@ -215,8 +213,8 @@ describe("writing calculator inputs to the URL", () => {
 
   it("round-trips every preset", () => {
     for (const preset of [...SIZE_PRESETS, ...SCENARIO_PRESETS]) {
-      expect(parseCalculatorSearch(buildCalculatorSearch(preset.usage))).toEqual(
-        preset.usage,
+      expect(parseCalculatorSearch(buildCalculatorSearch(preset))).toEqual(
+        usageOf(preset),
       );
     }
   });

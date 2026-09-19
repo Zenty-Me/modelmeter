@@ -7,77 +7,77 @@ export const DEFAULT_USAGE: UsageInput = {
 };
 
 /**
- * UX presets only.
+ * Preset workloads, so the calculator can be filled in with one click.
  *
- * These numbers are NOT industry benchmarks and are not derived from any real
- * traffic data. They exist purely so the calculator can be filled with one
- * click while the form is being explored.
+ * These numbers are hand-picked illustrative examples. They are NOT industry
+ * averages, benchmarks, recommended production values or claims about typical
+ * usage, and they are not derived from any real traffic data. The disclaimer
+ * rendered next to the chips in `components/UsageCalculator.tsx` says so on
+ * screen; do not remove it, and do not describe these values as
+ * representative.
  */
 export const SIZE_PRESETS: UsagePreset[] = [
   {
     id: "small",
     label: "Small",
-    hint: "10K requests / month",
-    usage: {
-      monthlyRequests: 10_000,
-      inputTokensPerRequest: 1_000,
-      outputTokensPerRequest: 300,
-    },
+    description: "10K requests per month, short prompts.",
+    monthlyRequests: 10_000,
+    inputTokensPerRequest: 1_000,
+    outputTokensPerRequest: 300,
   },
   {
     id: "medium",
     label: "Medium",
-    hint: "100K requests / month",
-    usage: DEFAULT_USAGE,
+    description: "100K requests per month, moderate prompts.",
+    monthlyRequests: DEFAULT_USAGE.monthlyRequests,
+    inputTokensPerRequest: DEFAULT_USAGE.inputTokensPerRequest,
+    outputTokensPerRequest: DEFAULT_USAGE.outputTokensPerRequest,
   },
   {
     id: "large",
     label: "Large",
-    hint: "1M requests / month",
-    usage: {
-      monthlyRequests: 1_000_000,
-      inputTokensPerRequest: 4_000,
-      outputTokensPerRequest: 800,
-    },
+    description: "1M requests per month, longer prompts.",
+    monthlyRequests: 1_000_000,
+    inputTokensPerRequest: 4_000,
+    outputTokensPerRequest: 800,
   },
 ];
 
+/** The scenario shown when the inputs match no named workload — see below. */
+export const CUSTOM_SCENARIO_ID = "custom";
+
 export const SCENARIO_PRESETS: UsagePreset[] = [
   {
-    id: "custom",
+    id: CUSTOM_SCENARIO_ID,
     label: "Custom",
-    hint: "Start from the defaults",
-    usage: DEFAULT_USAGE,
+    description: "Start from the default estimate.",
+    monthlyRequests: DEFAULT_USAGE.monthlyRequests,
+    inputTokensPerRequest: DEFAULT_USAGE.inputTokensPerRequest,
+    outputTokensPerRequest: DEFAULT_USAGE.outputTokensPerRequest,
   },
   {
     id: "chatbot",
     label: "Chatbot",
-    hint: "Short prompts, short replies",
-    usage: {
-      monthlyRequests: 200_000,
-      inputTokensPerRequest: 800,
-      outputTokensPerRequest: 400,
-    },
+    description: "Illustrative short-prompt chat workload.",
+    monthlyRequests: 200_000,
+    inputTokensPerRequest: 800,
+    outputTokensPerRequest: 400,
   },
   {
     id: "rag",
     label: "RAG",
-    hint: "Retrieved context dominates input",
-    usage: {
-      monthlyRequests: 50_000,
-      inputTokensPerRequest: 6_000,
-      outputTokensPerRequest: 600,
-    },
+    description: "Illustrative retrieval-augmented workload.",
+    monthlyRequests: 50_000,
+    inputTokensPerRequest: 6_000,
+    outputTokensPerRequest: 600,
   },
   {
     id: "agent",
     label: "AI Agent",
-    hint: "Multi-step, tool-heavy calls",
-    usage: {
-      monthlyRequests: 20_000,
-      inputTokensPerRequest: 12_000,
-      outputTokensPerRequest: 1_500,
-    },
+    description: "Illustrative multi-step agent workload.",
+    monthlyRequests: 20_000,
+    inputTokensPerRequest: 12_000,
+    outputTokensPerRequest: 1_500,
   },
 ];
 
@@ -87,10 +87,15 @@ const ALL_PRESETS: readonly UsagePreset[] = [
   ...SCENARIO_PRESETS,
 ];
 
+/** The fields a preset and a usage have in common. */
+const USAGE_KEYS = [
+  "monthlyRequests",
+  "inputTokensPerRequest",
+  "outputTokensPerRequest",
+] as const satisfies readonly (keyof UsageInput)[];
+
 function usageMatchesPreset(preset: UsagePreset, usage: UsageInput): boolean {
-  return (Object.keys(preset.usage) as (keyof UsageInput)[]).every(
-    (key) => preset.usage[key] === usage[key],
-  );
+  return USAGE_KEYS.every((key) => preset[key] === usage[key]);
 }
 
 function matchPreset(
@@ -100,9 +105,9 @@ function matchPreset(
   return presets.find((preset) => usageMatchesPreset(preset, usage))?.id ?? null;
 }
 
-/** The preset a usage set matches, across both groups. */
-export function matchPresetId(usage: UsageInput): string | null {
-  return matchPreset(ALL_PRESETS, usage);
+/** The scale preset a usage set matches, or null. */
+export function matchSizePresetId(usage: UsageInput): string | null {
+  return matchPreset(SIZE_PRESETS, usage);
 }
 
 /**
@@ -115,6 +120,17 @@ export function matchPresetId(usage: UsageInput): string | null {
  */
 export function matchScenarioPresetId(usage: UsageInput): string | null {
   return matchPreset(SCENARIO_PRESETS, usage);
+}
+
+/**
+ * The scenario chip to show as selected for a usage set.
+ *
+ * Selection is always derived from the numbers, never stored, which is what
+ * stops the highlighted chip from contradicting the form: the moment a preset's
+ * values are edited the match disappears and this falls back to `custom`.
+ */
+export function resolveScenarioPresetId(usage: UsageInput): string {
+  return matchScenarioPresetId(usage) ?? CUSTOM_SCENARIO_ID;
 }
 
 /** Looks up any preset by id, so a shared `scenario=<id>` can be read back. */

@@ -143,9 +143,15 @@ export interface PricingSource {
   isVerified: boolean;
 }
 
-export interface UsagePreset {
+/**
+ * A one-click example workload.
+ *
+ * It carries the three usage fields directly, so a preset can be handed to
+ * `toUsageDraft` or the calculator without unwrapping anything.
+ */
+export interface UsagePreset extends UsageInput {
   id: string;
   label: string;
-  hint: string;
-  usage: UsageInput;
+  /** Shown under the group while this preset is the selected one. */
+  description: string;
 }

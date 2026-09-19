@@ -3,7 +3,12 @@
 import { Calculator } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { UsageDraft, UsagePreset } from "@/lib/types";
-import { SCENARIO_PRESETS, SIZE_PRESETS, matchPresetId } from "@/lib/presets";
+import {
+  SCENARIO_PRESETS,
+  SIZE_PRESETS,
+  matchSizePresetId,
+  resolveScenarioPresetId,
+} from "@/lib/presets";
 import { parseUsageDraft, toUsageDraft } from "@/lib/calculator";
 
 type UsageCalculatorProps = {
@@ -59,10 +64,14 @@ function blockInvalidKeys(event: KeyboardEvent<HTMLInputElement>) {
 }
 
 export function UsageCalculator({ draft, onChange }: UsageCalculatorProps) {
-  const activePresetId = matchPresetId(parseUsageDraft(draft));
+  const usage = parseUsageDraft(draft);
+  // Both selections are derived from the current numbers, so editing a preset's
+  // values drops the match instead of leaving a stale chip selected.
+  const selectedSizeId = matchSizePresetId(usage);
+  const selectedScenarioId = resolveScenarioPresetId(usage);
 
   const applyPreset = (preset: UsagePreset) => {
-    onChange(toUsageDraft(preset.usage));
+    onChange(toUsageDraft(preset));
   };
 
   return (
@@ -80,17 +89,17 @@ export function UsageCalculator({ draft, onChange }: UsageCalculatorProps) {
         <PresetGroup
           legend="Scale"
           presets={SIZE_PRESETS}
-          activeId={activePresetId}
+          selectedId={selectedSizeId}
           onSelect={applyPreset}
         />
         <PresetGroup
           legend="Scenario"
           presets={SCENARIO_PRESETS}
-          activeId={activePresetId}
+          selectedId={selectedScenarioId}
           onSelect={applyPreset}
         />
         <p className="text-xs text-slate-500">
-          Presets are UX shortcuts only. They are not industry averages or
+          Preset values are illustrative examples only, not industry averages or
           benchmarks.
         </p>
       </div>
@@ -181,16 +190,18 @@ function NumberField({
 type PresetGroupProps = {
   legend: string;
   presets: readonly UsagePreset[];
-  activeId: string | null;
+  selectedId: string | null;
   onSelect: (preset: UsagePreset) => void;
 };
 
 function PresetGroup({
   legend,
   presets,
-  activeId,
+  selectedId,
   onSelect,
 }: PresetGroupProps) {
+  const selected = presets.find((preset) => preset.id === selectedId) ?? null;
+
   return (
     <fieldset>
       <legend className="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -198,17 +209,16 @@ function PresetGroup({
       </legend>
       <div className="mt-2 flex flex-wrap gap-2">
         {presets.map((preset) => {
-          const isActive = preset.id === activeId;
+          const isSelected = preset.id === selectedId;
 
           return (
             <button
               key={preset.id}
               type="button"
-              title={preset.hint}
-              aria-pressed={isActive}
+              aria-pressed={isSelected}
               onClick={() => onSelect(preset)}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                isActive
+                isSelected
                   ? "border-slate-900 bg-slate-900 text-white"
                   : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
               }`}
@@ -218,6 +228,11 @@ function PresetGroup({
           );
         })}
       </div>
+      {/* Reserved height: the selected preset's description changes without
+          pushing the rest of the form around. */}
+      <p className="mt-2 min-h-4 text-xs text-slate-500">
+        {selected?.description ?? ""}
+      </p>
     </fieldset>
   );
 }
