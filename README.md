@@ -152,6 +152,8 @@ The dataset records the following for every model:
 
 **Cost only.** ModelMeter compares estimated cost only. It does not rank model quality, latency or capability, and the labels on the page describe cost, not fitness for a task.
 
+**Pricing freshness.** ModelMeter records the date of each manual pricing review and shows how long ago that review happened, so it is clear when the official sources should be rechecked: under a month reads as recently verified, and past two months it says the pricing may be outdated and points back at the provider pages. Nothing is fetched, polled or updated automatically — prices only move when a person edits the dataset and records a new `checkedAt`.
+
 ### Current dataset
 
 Verified on 2026-09-18.

@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { PRICING_CHECKED_AT, PRICING_SOURCES } from "@/lib/pricing";
 import { formatCheckedAt } from "@/lib/format";
+import { PricingFreshnessNote } from "./PricingFreshnessNote";
 
 export function PricingSources() {
   return (
@@ -68,6 +69,7 @@ export function PricingSources() {
             </span>{" "}
             {formatCheckedAt(PRICING_CHECKED_AT)}
           </p>
+          <PricingFreshnessNote />
         </div>
       </div>
     </section>
